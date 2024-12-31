@@ -1,107 +1,259 @@
-# Arbitrary-steps Image Super-resolution via Diffusion Inversion
+# Old Photo Restoration (Official PyTorch Implementation)
 
-[Zongsheng Yue](https://zsyoaoa.github.io/), [Kang Liao](https://kangliao929.github.io/), [Chen Change Loy](https://www.mmlab-ntu.com/person/ccloy/) 
+<img src='imgs/0001.jpg'/>
 
-[![arXiv](https://img.shields.io/badge/arXiv%20paper-2412.09013-b31b1b.svg)](https://arxiv.org/abs/2412.09013) [![Replicate](https://img.shields.io/badge/Demo-%F0%9F%9A%80%20Replicate-blue)](https://replicate.com/zsyoaoa/invsr) [![Hugging Face](https://img.shields.io/badge/Demo-%F0%9F%A4%97%20Hugging%20Face-blue)](https://huggingface.co/spaces/OAOA/InvSR) <a href="https://colab.research.google.com/drive/1hjgCFnAU4oUUhh9VRfTwsFN1AiIjdcSR?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a> ![visitors](https://visitor-badge.laobi.icu/badge?page_id=zsyOAOA/InvSR) 
+### [Project Page](http://raywzy.com/Old_Photo/) | [Paper (CVPR version)](https://arxiv.org/abs/2004.09484) | [Paper (Journal version)](https://arxiv.org/pdf/2009.07047v1.pdf) | [Pretrained Model](https://hkustconnect-my.sharepoint.com/:f:/g/personal/bzhangai_connect_ust_hk/Em0KnYOeSSxFtp4g_dhWdf0BdeT3tY12jIYJ6qvSf300cA?e=nXkJH2) | [Colab Demo](https://colab.research.google.com/drive/1NEm6AsybIiC5TwTU_4DqDkQO0nFRB-uA?usp=sharing)  | [Replicate Demo & Docker Image](https://replicate.ai/zhangmozhe/bringing-old-photos-back-to-life) :fire:
 
-<!--[![Replicate](https://img.shields.io/badge/Demo-%F0%9F%9A%80%20Replicate-blue)](https://replicate.com/cjwbw/resshift)-->
+**Bringing Old Photos Back to Life, CVPR2020 (Oral)**
 
+**Old Photo Restoration via Deep Latent Space Translation, TPAMI 2022**
 
-:star: If you've found InvSR useful for your research or projects, please show your support by starring this repo. Thanks! :hugs: 
+[Ziyu Wan](http://raywzy.com/)<sup>1</sup>,
+[Bo Zhang](https://www.microsoft.com/en-us/research/people/zhanbo/)<sup>2</sup>,
+[Dongdong Chen](http://www.dongdongchen.bid/)<sup>3</sup>,
+[Pan Zhang](https://panzhang0212.github.io/)<sup>4</sup>,
+[Dong Chen](https://www.microsoft.com/en-us/research/people/doch/)<sup>2</sup>,
+[Jing Liao](https://liaojing.github.io/html/)<sup>1</sup>,
+[Fang Wen](https://www.microsoft.com/en-us/research/people/fangwen/)<sup>2</sup> <br>
+<sup>1</sup>City University of Hong Kong, <sup>2</sup>Microsoft Research Asia, <sup>3</sup>Microsoft Cloud AI, <sup>4</sup>USTC
 
----
->This study presents a new image super-resolution (SR) technique based on diffusion inversion, aiming at harnessing the rich image priors encapsulated in large pre-trained diffusion models to improve SR performance. We design a \textit{Partial noise Prediction} strategy to construct an intermediate state of the diffusion model, which serves as the starting sampling point. Central to our approach is a deep noise predictor to estimate the optimal noise maps for the forward diffusion process. Once trained, this noise predictor can be used to initialize the sampling process partially along the diffusion trajectory, generating the desirable high-resolution result. Compared to existing approaches, our method offers a flexible and efficient sampling mechanism that supports an arbitrary number of sampling steps, ranging from one to five. Even with a single sampling step, our method demonstrates superior or comparable performance to recent state-of-the-art approaches.
-><img src="./assets/framework.png" align="middle" width="800">
----
-## Update
-_ **2024.12.14**: Add [![Replicate](https://img.shields.io/badge/Demo-%F0%9F%9A%80%20Replicate-blue)](https://replicate.com/zsyoaoa/invsr).
-- **2024.12.13**: Add [![Hugging Face](https://img.shields.io/badge/Demo-%F0%9F%A4%97%20Hugging%20Face-blue)](https://huggingface.co/spaces/OAOA/InvSR) and <a href="https://colab.research.google.com/drive/1hjgCFnAU4oUUhh9VRfTwsFN1AiIjdcSR?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>.
-- **2024.12.11**: Create this repo.
+<!-- ## Notes of this project
+The code originates from our research project and the aim is to demonstrate the research idea, so we have not optimized it from a product perspective. And we will spend time to address some common issues, such as out of memory issue, limited resolution, but will not involve too much in engineering problems, such as speedup of the inference, fastapi deployment and so on. **We welcome volunteers to contribute to this project to make it more usable for practical application.** -->
 
-## Requirements
-* Python 3.10, Pytorch 2.4.0, [xformers](https://github.com/facebookresearch/xformers) 0.0.27.post2
-* More detail (See [environment.yaml](environment.yaml))
-* A suitable [conda](https://conda.io/) environment named `invsr` can be created and activated with:
+## :sparkles: News
+**2022.3.31**: Our new work regarding old film restoration will be published in CVPR 2022. For more details, please refer to the [project website](http://raywzy.com/Old_Film/) and [github repo](https://github.com/raywzy/Bringing-Old-Films-Back-to-Life).
+
+The framework now supports the restoration of high-resolution input.
+
+<img src='imgs/HR_result.png'>
+
+Training code is available and welcome to have a try and learn the training details. 
+
+You can now play with our [Colab](https://colab.research.google.com/drive/1NEm6AsybIiC5TwTU_4DqDkQO0nFRB-uA?usp=sharing) and try it on your photos. 
+
+## Requirement
+The code is tested on Ubuntu with Nvidia GPUs and CUDA installed. Python>=3.6 is required to run the code.
+
+## Installation
+
+Clone the Synchronized-BatchNorm-PyTorch repository for
 
 ```
-conda create -n invsr python=3.10
-conda activate invsr
-pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121
-pip install -U xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121
-pip install -e ".[torch]"
+cd Face_Enhancement/models/networks/
+git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
+cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm .
+cd ../../../
+```
+
+```
+cd Global/detection_models
+git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
+cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm .
+cd ../../
+```
+
+Download the landmark detection pretrained model
+
+```
+cd Face_Detection/
+wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
+bzip2 -d shape_predictor_68_face_landmarks.dat.bz2
+cd ../
+```
+
+Download the pretrained model, put the file `Face_Enhancement/checkpoints.zip` under `./Face_Enhancement`, and put the file `Global/checkpoints.zip` under `./Global`. Then unzip them respectively.
+
+```
+cd Face_Enhancement/
+wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/face_checkpoints.zip
+unzip face_checkpoints.zip
+cd ../
+cd Global/
+wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip
+unzip global_checkpoints.zip
+cd ../
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-## Applications
-### :point_right: Real-world Image Super-resolution
-[<img src="assets/real-7.png" height="235"/>](https://imgsli.com/MzI2MTU5) [<img src="assets/real-1.png" height="235"/>](https://imgsli.com/MzI2MTUx) [<img src="assets/real-2.png" height="235"/>](https://imgsli.com/MzI2MTUy)
-[<img src="assets/real-4.png" height="361"/>](https://imgsli.com/MzI2MTU0) [<img src="assets/real-6.png" height="361"/>](https://imgsli.com/MzI2MTU3) [<img src="assets/real-5.png" height="361"/>](https://imgsli.com/MzI2MTU1)
+## :rocket: How to use?
 
-<!--### :point_right: General Image Enhancement-->
-<!--[<img src="assets/enhance-1.png" height="246.5"/>](https://imgsli.com/MzI2MTYw) [<img src="assets/enhance-2.png" height="246.5"/>](https://imgsli.com/MzI2MTYy) -->
-<!--[<img src="assets/enhance-3.png" height="207"/>](https://imgsli.com/MzI2MjAx) [<img src="assets/enhance-4.png" height="207"/>](https://imgsli.com/MzI2NTk1) [<img src="assets/enhance-5.png" height="207"/>](https://imgsli.com/MzI2MjA0)-->
+**Note**: GPU can be set 0 or 0,1,2 or 0,2; use -1 for CPU
 
-### :point_right: AIGC Image Enhancement
-[<img src="assets/sdxl-1.png" height="272"/>](https://imgsli.com/MzI2MjQy) [<img src="assets/sdxl-2.png" height="272"/>](https://imgsli.com/MzI2MjQ1) [<img src="assets/sdxl-3.png" height="272"/>](https://imgsli.com/MzI2MjQ3)
-[<img src="assets/flux-1.png" height="272"/>](https://imgsli.com/MzI2MjQ5) [<img src="assets/flux-2.png" height="272"/>](https://imgsli.com/MzI2MjUw) [<img src="assets/flux-3.png" height="272"/>](https://imgsli.com/MzI2MjUx)
+### 1) Full Pipeline
 
+You could easily restore the old photos with one simple command after installation and downloading the pretrained model.
 
-## Inference
-### :rocket: Fast testing 
+For images without scratches:
+
 ```
-python inference_invsr.py -i [image folder/image path] -o [result folder] --num_steps 1
-```
-1. **To deal with large images, e.g., 1k---->4k, we recommend adding the option** ``--chopping_size 256``.
-2. Other options:
-    + Specify the pre-downloaded [SD Turbo](https://huggingface.co/stabilityai/sd-turbo) Model: ``--sd_path``.
-    + Specify the pre-downloaded noise predictor: ``--started_ckpt_path``.
-    + The number of sampling steps: ``--num_steps``.
-    + If your GPU memory is limited, please add the option ``--chopping_bs 1``.
-
-### :railway_car: Online Demo
-You can try our method through an online demo:
-```
-python app.py
+python run.py --input_folder [test_image_folder_path] \
+              --output_folder [output_path] \
+              --GPU 0
 ```
 
-### :whale: Now also available in Docker
-```bash
-docker compose up -d # Go to http://127.0.0.1:7860/
+For scratched images:
+
+```
+python run.py --input_folder [test_image_folder_path] \
+              --output_folder [output_path] \
+              --GPU 0 \
+              --with_scratch
 ```
 
-### :airplane: Reproducing our paper results
-+ Synthetic dataset of ImageNet-Test: [Google Drive](https://drive.google.com/file/d/1PRGrujx3OFilgJ7I6nW7ETIR00wlAl2m/view?usp=sharing).
+**For high-resolution images with scratches**:
 
-+ Real data for image super-resolution: [RealSRV3](https://github.com/csjcai/RealSR) | [RealSet80](testdata/RealSet80)
-
-+ To reproduce the quantitative results on Imagenet-Test and RealSRV3, please add the color fixing options by ``--color_fix wavelet``.
-
-## Training
-### :turtle: Preparing stage
-1. Download the finetuned LPIPS model from this [link](https://huggingface.co/OAOA/InvSR/resolve/main/vgg16_sdturbo_lpips.pth?download=true) and put it in the folder of "weights".
-2. Prepare the [config](configs/sd-turbo-sr-ldis.yaml) file:
-    + SD-Turbo path: configs.sd_pipe.params.cache_dir.
-    + Training data path: data.train.params.data_source.
-    + Validation data path: data.val.params.dir_path (low-quality image) and data.val.params.extra_dir_path (high-quality image).
-    + Batchsize: configs.train.batch and configs.train.microbatch (total batchsize = microbatch * #GPUS * num_grad_accumulation)
-
-### :dolphin: Begin training
 ```
-CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nproc_per_node=4 --nnodes=1 main.py --save_dir [Logging Folder] 
+python run.py --input_folder [test_image_folder_path] \
+              --output_folder [output_path] \
+              --GPU 0 \
+              --with_scratch \
+              --HR
 ```
 
-### :whale: Resume from interruption
+Note: Please try to use the absolute path. The final results will be saved in `./output_path/final_output/`. You could also check the produced results of different steps in `output_path`.
+
+### 2) Scratch Detection
+
+Currently we don't plan to release the scratched old photos dataset with labels directly. If you want to get the paired data, you could use our pretrained model to test the collected images to obtain the labels.
+
 ```
-CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nproc_per_node=4 --nnodes=1 main.py --save_dir [Logging Folder] --resume save_dir/ckpts/model_xx.pth
+cd Global/
+python detection.py --test_path [test_image_folder_path] \
+                    --output_dir [output_path] \
+                    --input_size [resize_256|full_size|scale_256]
 ```
+
+<img src='imgs/scratch_detection.png'>
+
+### 3) Global Restoration
+
+A triplet domain translation network is proposed to solve both structured degradation and unstructured degradation of old photos.
+
+<p align="center">
+<img src='imgs/pipeline.PNG' width="50%" height="50%"/>
+</p>
+
+```
+cd Global/
+python test.py --Scratch_and_Quality_restore \
+               --test_input [test_image_folder_path] \
+               --test_mask [corresponding mask] \
+               --outputs_dir [output_path]
+
+python test.py --Quality_restore \
+               --test_input [test_image_folder_path] \
+               --outputs_dir [output_path]
+```
+
+<img src='imgs/global.png'>
+
+
+### 4) Face Enhancement
+
+We use a progressive generator to refine the face regions of old photos. More details could be found in our journal submission and `./Face_Enhancement` folder.
+
+<p align="center">
+<img src='imgs/face_pipeline.jpg' width="60%" height="60%"/>
+</p>
+
+
+<img src='imgs/face.png'>
+
+> *NOTE*: 
+> This repo is mainly for research purpose and we have not yet optimized the running performance. 
+> 
+> Since the model is pretrained with 256*256 images, the model may not work ideally for arbitrary resolution.
+
+### 5) GUI
+
+A user-friendly GUI which takes input of image by user and shows result in respective window.
+
+#### How it works:
+
+1. Run GUI.py file.
+2. Click browse and select your image from test_images/old_w_scratch folder to remove scratches.
+3. Click Modify Photo button.
+4. Wait for a while and see results on GUI window.
+5. Exit window by clicking Exit Window and get your result image in output folder.
+
+<img src='imgs/gui.PNG'>
+
+## How to train?
+
+### 1) Create Training File
+
+Put the folders of VOC dataset, collected old photos (e.g., Real_L_old and Real_RGB_old) into one shared folder. Then
+```
+cd Global/data/
+python Create_Bigfile.py
+```
+Note: Remember to modify the code based on your own environment.
+
+### 2) Train the VAEs of domain A and domain B respectively
+
+```
+cd ..
+python train_domain_A.py --use_v2_degradation --continue_train --training_dataset domain_A --name domainA_SR_old_photos --label_nc 0 --loadSize 256 --fineSize 256 --dataroot [your_data_folder] --no_instance --resize_or_crop crop_only --batchSize 100 --no_html --gpu_ids 0,1,2,3 --self_gen --nThreads 4 --n_downsample_global 3 --k_size 4 --use_v2 --mc 64 --start_r 1 --kl 1 --no_cgan --outputs_dir [your_output_folder] --checkpoints_dir [your_ckpt_folder]
+
+python train_domain_B.py --continue_train --training_dataset domain_B --name domainB_old_photos --label_nc 0 --loadSize 256 --fineSize 256 --dataroot [your_data_folder]  --no_instance --resize_or_crop crop_only --batchSize 120 --no_html --gpu_ids 0,1,2,3 --self_gen --nThreads 4 --n_downsample_global 3 --k_size 4 --use_v2 --mc 64 --start_r 1 --kl 1 --no_cgan --outputs_dir [your_output_folder]  --checkpoints_dir [your_ckpt_folder]
+```
+Note: For the --name option, please ensure your experiment name contains "domainA" or "domainB", which will be used to select different dataset.
+
+### 3) Train the mapping network between domains
+
+Train the mapping without scratches:
+```
+python train_mapping.py --use_v2_degradation --training_dataset mapping --use_vae_which_epoch 200 --continue_train --name mapping_quality --label_nc 0 --loadSize 256 --fineSize 256 --dataroot [your_data_folder] --no_instance --resize_or_crop crop_only --batchSize 80 --no_html --gpu_ids 0,1,2,3 --nThreads 8 --load_pretrainA [ckpt_of_domainA_SR_old_photos] --load_pretrainB [ckpt_of_domainB_old_photos] --l2_feat 60 --n_downsample_global 3 --mc 64 --k_size 4 --start_r 1 --mapping_n_block 6 --map_mc 512 --use_l1_feat --niter 150 --niter_decay 100 --outputs_dir [your_output_folder] --checkpoints_dir [your_ckpt_folder]
+```
+
+
+Traing the mapping with scraches:
+```
+python train_mapping.py --no_TTUR --NL_res --random_hole --use_SN --correlation_renormalize --training_dataset mapping --NL_use_mask --NL_fusion_method combine --non_local Setting_42 --use_v2_degradation --use_vae_which_epoch 200 --continue_train --name mapping_scratch --label_nc 0 --loadSize 256 --fineSize 256 --dataroot [your_data_folder] --no_instance --resize_or_crop crop_only --batchSize 36 --no_html --gpu_ids 0,1,2,3 --nThreads 8 --load_pretrainA [ckpt_of_domainA_SR_old_photos] --load_pretrainB [ckpt_of_domainB_old_photos] --l2_feat 60 --n_downsample_global 3 --mc 64 --k_size 4 --start_r 1 --mapping_n_block 6 --map_mc 512 --use_l1_feat --niter 150 --niter_decay 100 --outputs_dir [your_output_folder] --checkpoints_dir [your_ckpt_folder] --irregular_mask [absolute_path_of_mask_file]
+```
+
+Traing the mapping with scraches (Multi-Scale Patch Attention for HR input):
+```
+python train_mapping.py --no_TTUR --NL_res --random_hole --use_SN --correlation_renormalize --training_dataset mapping --NL_use_mask --NL_fusion_method combine --non_local Setting_42 --use_v2_degradation --use_vae_which_epoch 200 --continue_train --name mapping_Patch_Attention --label_nc 0 --loadSize 256 --fineSize 256 --dataroot [your_data_folder] --no_instance --resize_or_crop crop_only --batchSize 36 --no_html --gpu_ids 0,1,2,3 --nThreads 8 --load_pretrainA [ckpt_of_domainA_SR_old_photos] --load_pretrainB [ckpt_of_domainB_old_photos] --l2_feat 60 --n_downsample_global 3 --mc 64 --k_size 4 --start_r 1 --mapping_n_block 6 --map_mc 512 --use_l1_feat --niter 150 --niter_decay 100 --outputs_dir [your_output_folder] --checkpoints_dir [your_ckpt_folder] --irregular_mask [absolute_path_of_mask_file] --mapping_exp 1
+```
+
+
+## Citation
+
+If you find our work useful for your research, please consider citing the following papers :)
+
+```bibtex
+@inproceedings{wan2020bringing,
+title={Bringing Old Photos Back to Life},
+author={Wan, Ziyu and Zhang, Bo and Chen, Dongdong and Zhang, Pan and Chen, Dong and Liao, Jing and Wen, Fang},
+booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+pages={2747--2757},
+year={2020}
+}
+```
+
+```bibtex
+@article{wan2020old,
+  title={Old Photo Restoration via Deep Latent Space Translation},
+  author={Wan, Ziyu and Zhang, Bo and Chen, Dongdong and Zhang, Pan and Chen, Dong and Liao, Jing and Wen, Fang},
+  journal={arXiv preprint arXiv:2009.07047},
+  year={2020}
+}
+```
+
+If you are also interested in the legacy photo/video colorization, please refer to [this work](https://github.com/zhangmozhe/video-colorization).
+
+## Maintenance
+
+This project is currently maintained by Ziyu Wan and is for academic research use only. If you have any questions, feel free to contact raywzy@gmail.com.
 
 ## License
 
-This project is licensed under [NTU S-Lab License 1.0](LICENSE). Redistribution and use should follow this license.
+The codes and the pretrained model in this repository are under the MIT license as specified by the LICENSE file. We use our labeled dataset to train the scratch detection model.
 
-## Acknowledgement
-
-This project is based on [BasicSR](https://github.com/XPixelGroup/BasicSR) and [diffusers](https://github.com/huggingface/diffusers). Thanks for their awesome works.
-
-### Contact
-If you have any questions, please feel free to contact me via `zsyzam@gmail.com`.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.

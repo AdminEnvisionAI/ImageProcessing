@@ -1,27 +1,43 @@
-FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+FROM nvidia/cuda:11.1-base-ubuntu20.04
 
-# Create workdir
-WORKDIR /invsr
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install git bzip2 wget unzip python3-pip python3-dev cmake libgl1-mesa-dev python-is-python3 libgtk2.0-dev -yq
+ADD . /app
+WORKDIR /app
+RUN cd Face_Enhancement/models/networks/ &&\
+  git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch &&\
+  cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm . &&\
+  cd ../../../
 
-# Copy from the files to the container
-COPY . /invsr
+RUN cd Global/detection_models &&\
+  git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch &&\
+  cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm . &&\
+  cd ../../
 
-# Install requeriments
-RUN apt update -y && apt install -y ffmpeg libsm6 libxext6
+RUN cd Face_Detection/ &&\
+  wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2 &&\
+  bzip2 -d shape_predictor_68_face_landmarks.dat.bz2 &&\
+  cd ../ 
 
-RUN pip install -U xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121
-RUN pip install -e ".[torch]"
-RUN pip install -r requirements.txt
+RUN cd Face_Enhancement/ &&\
+  wget https://facevc.blob.core.windows.net/zhanbo/old_photo/pretrain/Face_Enhancement/checkpoints.zip &&\
+  unzip checkpoints.zip &&\
+  cd ../ &&\
+  cd Global/ &&\
+  wget https://facevc.blob.core.windows.net/zhanbo/old_photo/pretrain/Global/checkpoints.zip &&\
+  unzip checkpoints.zip &&\
+  rm -f checkpoints.zip &&\
+  cd ../
 
-# Clean up all cached files
-RUN pip cache purge && apt-get clean autoclean && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/
+RUN pip3 install numpy
 
-# Expose gradio port
-EXPOSE 7860
+RUN pip3 install dlib
 
-# Set listen for 0.0.0.0
-ENV GRADIO_SERVER_NAME="0.0.0.0"
+RUN pip3 install -r requirements.txt
 
-# Set python as entrypoint pointing to app.py to run the interface by default
-ENTRYPOINT [ "python" ]
-CMD [ "app.py" ]
+RUN git clone https://github.com/NVlabs/SPADE.git
+
+RUN cd SPADE/ && pip3 install -r requirements.txt
+
+RUN cd ..
+
+CMD ["python3", "run.py"]
